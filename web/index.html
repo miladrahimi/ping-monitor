@@ -113,8 +113,9 @@
             let color = colors.pop()
 
             data = []
+            labels.sort()
             labels.forEach(function (label) {
-                if(collections[server][label]) {
+                if (collections[server][label]) {
                     data[label] = collections[server][label]
                 } else {
                     data[label] = 0
