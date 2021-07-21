@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="A simple tool to monitor pings to a server">
+    <meta name="keywords" content="Ping, Monitor, Online">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ping Monitor</title>
+    <link rel="icon" href="favicon.png">
+    <link rel="apple-touch-icon" href="favicon.png">
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+    <link rel="author" href="https://miladrahimi.com">
+</head>
+<body class="text-center">
+
+<div class="container">
+    <div class="row">
+        <div class="col py-4">
+            <h1 class="display-6">Ping Monitor</h1>
+            <p class="lead">Ping time determines the availability of the server in the Internet.</p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <canvas id="chart"></canvas>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered">
+                    <thead>
+                    <tr>
+                        <th>Server</th>
+                        <th>Average Ping Time</th>
+                        <th>Time Range</th>
+                    </tr>
+                    </thead>
+                    <tbody id="average"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="jquery/jquery-3.6.0.min.js"></script>
+<script src="bootstrap/js/bootstrap.min.js"></script>
+<script src="chart/chart.min.js"></script>
+<script>
+    fetch('/data', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    }).then(
+        response => response.json()
+    ).then(data => {
+        setup(data)
+    }).catch((error) => {
+        console.error(error)
+        alert('Failed to load data from server.')
+    })
+
+    function average(array) {
+        let total = 0;
+        let count = 0;
+
+        jQuery.each(array, function (index, value) {
+            if (![0, -1].includes(value)) {
+                total += value;
+                count++;
+            }
+        });
+
+        return Math.round((total / count) * 100) / 100;
+    }
+
+    function setup(data) {
+        let collections = []
+        let servers = []
+        let labels = []
+        let colors = [
+            'rgb(176,20,51)',
+            'rgb(167,141,14)',
+            'rgb(160,20,176)',
+            'rgb(47,167,14)',
+            'rgb(20,36,176)',
+        ]
+
+        for (const server in data) {
+            if (data.hasOwnProperty(server)) {
+                servers.push(server)
+
+                let collection = []
+                let s = data[server]
+                for (const time in s) {
+                    if (s.hasOwnProperty(time)) {
+                        if (!labels.includes(time)) {
+                            labels.push(time)
+                        }
+
+                        collection[time] = parseFloat(s[time]) / 1000000
+                    }
+                }
+
+                collections[server] = collection
+            }
+        }
+
+        let datasets = []
+        servers.forEach(function (server) {
+            let color = colors.pop()
+
+            data = []
+            labels.forEach(function (label) {
+                if(collections[server][label]) {
+                    data[label] = collections[server][label]
+                } else {
+                    data[label] = 0
+                }
+            })
+
+            data = Object.values(data)
+
+            datasets.push({
+                label: server,
+                data: data,
+                backgroundColor: color,
+                borderColor: color,
+                borderWidth: 1
+            })
+
+            $('#average').append(
+                `<tr><td>${server}</td><td>${average(data)}</td><td>Recent 24 hours</td></tr>`
+            )
+        })
+
+        let ctx = document.getElementById('chart').getContext('2d');
+        let chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: datasets,
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Milliseconds'
+                        },
+                    },
+                },
+                layout: {
+                    padding: 20
+                },
+                aspectRatio: 4,
+            },
+        });
+
+        window.addEventListener('beforeprint', () => {
+            chart.resize();
+        });
+
+        window.addEventListener('afterprint', () => {
+            chart.resize();
+        });
+    }
+</script>
+</body>
+</html>

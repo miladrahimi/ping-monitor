@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - ${APP_EXPOSED_PORT:-0}:8585
+    restart: always
+    environment:
+      REDIS_URL: redis:6379
+      TARGETS: ${TARGETS:-miladrahimi.com}
+    volumes:
+      - ./logs:/app/logs
+      - ./web:/app/web
+    depends_on:
+      - redis
+
+  redis:
+    image: ghcr.io/getimages/redis:6.2.4-buster
+    restart: always
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - ./data:/data
+    ports:
+      - 127.0.0.1:${REDIS_EXPOSED_PORT:-0}:6379
