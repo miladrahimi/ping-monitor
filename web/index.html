@@ -15,18 +15,18 @@
 <body class="text-center">
 
 <div class="container">
-    <div class="row">
-        <div class="col py-2">
+    <div class="row mt-3">
+        <div class="col">
             <h1 class="display-6">Ping Monitor</h1>
             <p class="lead">Ping time determines the availability of the server in the network.</p>
         </div>
     </div>
-    <div class="row">
+    <div class="row mt-3">
         <div class="col">
             <canvas id="chart"></canvas>
         </div>
     </div>
-    <div class="row">
+    <div class="row mt-3">
         <div class="col">
             <div class="table-responsive">
                 <table class="table table-striped table-bordered">
@@ -40,6 +40,14 @@
                     <tbody id="average"></tbody>
                 </table>
             </div>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col">
+            <p class="text-muted small">
+                &copy; 2021 by <a href="https://miladrahimi.com">Milad Rahimi</a> |
+                <a href="https://github.com/miladrahimi/ping-monitor">Github</a>
+            </p>
         </div>
     </div>
 </div>
@@ -156,7 +164,7 @@
                     },
                 },
                 layout: {
-                    padding: 20
+                    padding: 5
                 },
                 aspectRatio: 2,
             },
