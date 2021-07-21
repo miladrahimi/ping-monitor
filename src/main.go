@@ -148,7 +148,13 @@ func call(server string) error {
 }
 
 func persist(server string, rtt int64) error {
-	key := fmt.Sprintf("%s=%s", server, time.Now().Format("2006/01/02 15:04"))
+	loc, err := time.LoadLocation(os.Getenv("TIMEZONE"))
+	if err != nil {
+		return err
+	}
+
+	t := time.Now().In(loc)
+	key := fmt.Sprintf("%s=%s", server, t.Format("2006/01/02 15:04"))
 	if err := rdb.Set(ctx, key, rtt, 24*time.Hour).Err(); err != nil {
 		return err
 	}

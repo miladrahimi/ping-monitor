@@ -11,6 +11,7 @@ services:
     environment:
       REDIS_URL: redis:6379
       TARGETS: ${TARGETS:-miladrahimi.com}
+      TIMEZONE: ${TIMEZONE:-UTC}
     volumes:
       - ./logs:/app/logs
       - ./web:/app/web
