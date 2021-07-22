@@ -14,14 +14,14 @@ import (
 	"time"
 )
 
-var servers []string
+var targets []string
 var ctx = context.Background()
 var rdb *redis.Client
 
 func main() {
 	setupLogger()
 	setupRedis()
-	configServers()
+	configTargets()
 	startWorker()
 
 	http.Handle("/", http.FileServer(http.Dir("./web")))
@@ -52,13 +52,13 @@ func setupRedis() {
 	})
 }
 
-func configServers() {
-	servers = strings.Split(os.Getenv("TARGETS"), ",")
-	if len(servers) > 5 {
-		log.Fatalln("Cannot handle more than 5 servers.")
+func configTargets() {
+	targets = strings.Split(os.Getenv("TARGETS"), ",")
+	if len(targets) > 5 {
+		log.Fatalln("Cannot handle more than 5 targets.")
 	}
 
-	log.Println(servers)
+	log.Println(targets)
 }
 
 func handleData(w http.ResponseWriter, _ *http.Request) {
@@ -70,10 +70,10 @@ func handleData(w http.ResponseWriter, _ *http.Request) {
 	}
 
 	values := make(map[string]map[string]int64)
-	for _, k := range keys {
-		kp := strings.Split(k, "=")
+	for _, key := range keys {
+		k := strings.Split(key, "=")
 
-		cmd := rdb.Get(ctx, k)
+		cmd := rdb.Get(ctx, key)
 		if cmd.Err() != nil {
 			publishError(w, cmd.Err())
 		}
@@ -83,11 +83,10 @@ func handleData(w http.ResponseWriter, _ *http.Request) {
 			publishError(w, err)
 		}
 
-		if values[kp[0]] == nil {
-			values[kp[0]] = make(map[string]int64)
+		if values[k[0]] == nil {
+			values[k[0]] = make(map[string]int64)
 		}
-
-		values[kp[0]][kp[1]] = int64(v)
+		values[k[0]][k[1]] = int64(v)
 	}
 
 	j, err := json.Marshal(values)
@@ -114,9 +113,9 @@ func publishError(w http.ResponseWriter, e error) {
 func startWorker() {
 	go func() {
 		for range time.Tick(15 * time.Second) {
-			for _, s := range servers {
-				go func(s string) {
-					err := call(s)
+			for _, s := range targets {
+				go func(t string) {
+					err := call(t)
 					if err != nil {
 						log.Println(err)
 					}
@@ -126,8 +125,8 @@ func startWorker() {
 	}()
 }
 
-func call(server string) error {
-	pinger, err := ping.NewPinger(server)
+func call(target string) error {
+	pinger, err := ping.NewPinger(target)
 	if err != nil {
 		return err
 	}
@@ -140,21 +139,21 @@ func call(server string) error {
 	}
 
 	stats := pinger.Statistics()
-	if err = persist(server, int64(stats.AvgRtt)); err != nil {
+	if err = persist(target, int64(stats.AvgRtt)); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func persist(server string, rtt int64) error {
+func persist(target string, rtt int64) error {
 	loc, err := time.LoadLocation(os.Getenv("TIMEZONE"))
 	if err != nil {
 		return err
 	}
 
 	t := time.Now().In(loc)
-	key := fmt.Sprintf("%s=%s", server, t.Format("2006/01/02 15:04"))
+	key := fmt.Sprintf("%s=%s", target, t.Format("2006/01/02 15:04"))
 	if err := rdb.Set(ctx, key, rtt, 24*time.Hour).Err(); err != nil {
 		return err
 	}
