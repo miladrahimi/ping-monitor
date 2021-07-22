@@ -5,7 +5,6 @@
     <meta name="description" content="A simple tool to monitor server pings written in Go and web technologies.">
     <meta name="keywords" content="Ping, Monitor, Online">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta http-equiv="refresh" content="30">
     <title>Ping Monitor</title>
     <link rel="icon" href="favicon.png">
     <link rel="apple-touch-icon" href="favicon.png">
@@ -55,36 +54,85 @@
 <script src="jquery/jquery-3.6.0.min.js"></script>
 <script src="bootstrap/js/bootstrap.min.js"></script>
 <script src="chart/chart.min.js"></script>
+<script src="chart/zoom/chartjs-plugin-zoom.min.js"></script>
 <script>
-    fetch('/data', {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
+    let ctx = document.getElementById('chart').getContext('2d')
+    let chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [],
         },
-    }).then(
-        response => response.json()
-    ).then(data => {
-        setup(data)
-    }).catch((error) => {
-        console.error(error)
-        alert('Failed to load data from server.')
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Milliseconds',
+                    },
+                },
+            },
+            layout: {
+                padding: 5,
+            },
+            aspectRatio: 2,
+            plugins: {
+                zoom: {
+                    zoom: {
+                        wheel: {
+                            enabled: true,
+                        },
+                        pinch: {
+                            enabled: true
+                        },
+                        mode: 'x',
+                    },
+                },
+            },
+        },
     })
 
-    function average(array) {
-        let total = 0;
-        let count = 0;
+    window.addEventListener('beforeprint', () => {
+        chart.resize()
+    })
 
-        jQuery.each(array, function (index, value) {
+    window.addEventListener('afterprint', () => {
+        chart.resize()
+    })
+
+    function load() {
+        fetch('/data', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        }).then(
+            response => response.json()
+        ).then(data => {
+            update(data)
+        }).catch((error) => {
+            console.error(error)
+            alert('Failed to load data from server.')
+        })
+    }
+
+    function average(array) {
+        let total = 0
+        let count = 0
+
+        $.each(array, function (index, value) {
             if (![0, -1].includes(value)) {
-                total += value;
-                count++;
+                total += value
+                count++
             }
-        });
+        })
 
         return Math.round((total / count) * 100) / 100;
     }
 
-    function setup(data) {
+    function update(data) {
         let collections = []
         let servers = []
         let labels = []
@@ -101,14 +149,13 @@
                 servers.push(server)
 
                 let collection = []
-                let s = data[server]
-                for (const time in s) {
-                    if (s.hasOwnProperty(time)) {
+                for (const time in data[server]) {
+                    if (data[server].hasOwnProperty(time)) {
                         if (!labels.includes(time)) {
                             labels.push(time)
                         }
 
-                        collection[time] = parseFloat(s[time]) / 1000000
+                        collection[time] = parseFloat(data[server][time]) / 1000000
                     }
                 }
 
@@ -116,12 +163,13 @@
             }
         }
 
+        labels.sort()
+
         let datasets = []
         servers.forEach(function (server) {
             let color = colors.pop()
 
             data = []
-            labels.sort()
             labels.forEach(function (label) {
                 if (collections[server][label]) {
                     data[label] = collections[server][label]
@@ -130,54 +178,29 @@
                 }
             })
 
-            data = Object.values(data)
-
             datasets.push({
                 label: server,
-                data: data,
+                data: Object.values(data),
                 backgroundColor: color,
                 borderColor: color,
                 borderWidth: 1
             })
 
             $('#average').append(
-                `<tr><td>${server}</td><td>${average(data)}</td><td>Recent 24 hours</td></tr>`
+                `<tr><td>${server}</td><td>${average(Object.values(data))}</td><td>Recent 24 hours</td></tr>`
             )
         })
 
-        let ctx = document.getElementById('chart').getContext('2d');
-        let chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: datasets,
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Milliseconds'
-                        },
-                    },
-                },
-                layout: {
-                    padding: 5
-                },
-                aspectRatio: 2,
-            },
-        });
+        chart.data = {
+            labels: labels,
+            datasets: datasets,
+        };
 
-        window.addEventListener('beforeprint', () => {
-            chart.resize();
-        });
-
-        window.addEventListener('afterprint', () => {
-            chart.resize();
-        });
+        chart.update();
     }
+
+    load()
+    setInterval(load, 30000)
 </script>
 </body>
 </html>
