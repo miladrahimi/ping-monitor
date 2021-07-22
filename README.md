@@ -34,8 +34,8 @@ The chart is powered by [Chart.js](https://www.chartjs.org)
 </p>
 
 ## See Also
-* **[health-monitor](https://github.com/miladrahimi/health-monitor)**: A simple tool to monitor server health
+* **[Health Monitor](https://github.com/miladrahimi/health-monitor)**: A simple tool to monitor server health
 
 ## License
-PhpRouter is initially created by [Milad Rahimi](https://miladrahimi.com)
+Ping Monitor is initially created by [Milad Rahimi](https://miladrahimi.com)
 and released under the [MIT License](http://opensource.org/licenses/mit-license.php).
