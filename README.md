@@ -28,7 +28,10 @@ Open your browser, surf localhost with the docker exposed port (default: 8585).
 
 The chart is powered by [Chart.js](https://www.chartjs.org)
 
-![Demo](https://github.com/miladrahimi/ping-monitor/blob/master/demo.png?raw=true)
+## Demo
+<p align="center">
+  <img alt="Demo" src="https://github.com/miladrahimi/ping-monitor/blob/master/demo.png?raw=true">
+</p>
 
 ## License
 PhpRouter is initially created by [Milad Rahimi](https://miladrahimi.com)
