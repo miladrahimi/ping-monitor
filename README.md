@@ -34,7 +34,7 @@ The chart is powered by [Chart.js](https://www.chartjs.org)
 </p>
 
 ## See Also
-* **Health Monitoring**: A simple tool to monitor server health
+* **[health-monitor](https://github.com/miladrahimi/health-monitor)**: A simple tool to monitor server health
 
 ## License
 PhpRouter is initially created by [Milad Rahimi](https://miladrahimi.com)
