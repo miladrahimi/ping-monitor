@@ -4,7 +4,7 @@ A simple tool to monitor server pings written in Go and web technologies.
 ## How does it work?
 It stores ping time in Redis storage every minute for each target (server).
 To increase the accuracy, it pings every 20 seconds and updates the result stored in the cache.
-So even if 2 of the pings get failed, we still have a valid ping time for that minute.
+So even if two of the calls failed, there would be a response time for that minute.
 
 ## Installation
 ```shell
@@ -16,9 +16,9 @@ docker-compose ps
 ```
 
 ## Configuration
-Open `.env` with a text editor and change the available variables.
+Open `.env` with a text editor and change the environemnt variables.
 
-Available variables:
+Environemnt variables:
 * **APP_EXPOSED_PORT**: The exposed port for web app
 * **TARGETS**: The comma-separated list of targets (servers) to ping
 * **TIMEZONE**: The timezone!
