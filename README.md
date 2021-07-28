@@ -2,9 +2,9 @@
 A simple tool to monitor server pings written in Go and web technologies.
 
 ## How does it work?
-It stores ping time in Redis storage every minute for each target (server).
-To increase the accuracy, it pings every 20 seconds and updates the result stored in the cache.
-So even if two of the calls failed, there would be a response time for that minute.
+It stores ping time in Redis storage every minute for each target (IP or server).
+To increase the accuracy, it pings each target every 20 seconds and updates the result stored in the storage.
+So even if one or two of the pings failed, there would be a ping time for that minute.
 
 ## Installation
 ```shell
@@ -20,7 +20,7 @@ Open `.env` with a text editor and change the environemnt variables.
 
 Environemnt variables:
 * **APP_EXPOSED_PORT**: The exposed port for web app
-* **TARGETS**: The comma-separated list of targets (servers) to ping
+* **TARGETS**: The comma-separated list of targets (IP or server) to ping
 * **TIMEZONE**: The timezone!
 
 ## Monitoring
